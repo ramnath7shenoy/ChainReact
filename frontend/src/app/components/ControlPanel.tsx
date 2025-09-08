@@ -11,6 +11,7 @@ interface ControlPanelProps {
     simulationId: string | null;
     isRunning: boolean;
     startSimulation: (args: { config: Record<string, string>, weeks: number }) => void;
+    apiBaseUrl: string; // <-- NEW PROP
 }
 
 interface DisruptionEvent {
@@ -19,18 +20,15 @@ interface DisruptionEvent {
   duration: number;
 }
 
-export const ControlPanel: React.FC<ControlPanelProps> = ({ simulationId, isRunning, startSimulation }) => {
+export const ControlPanel: React.FC<ControlPanelProps> = ({ simulationId, isRunning, startSimulation, apiBaseUrl }) => {
     const [numWeeks, setNumWeeks] = useState(50);
     const [agentConfig, setAgentConfig] = useState({
-        "Retailer": "RULE",
-        "Wholesaler": "RULE",
-        "Distributor": "RULE",
+        "Retailer": "RULE", "Wholesaler": "RULE", "Distributor": "RULE",
     });
 
     const handleToggle = (agentName: string, isAi: boolean) => {
         setAgentConfig(prev => ({ ...prev, [agentName]: isAi ? "AI" : "RULE" }));
     };
-
     const handleStart = () => {
         startSimulation({ config: agentConfig, weeks: numWeeks });
     };
@@ -39,7 +37,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ simulationId, isRunn
         if (!simulationId) return;
         const event: DisruptionEvent = { type: "DEMAND_SPIKE", value: 80, duration: 3 };
         try {
-          await fetch(`http://localhost:8000/simulation/${simulationId}/disrupt`, {
+          // UPDATED: Use the dynamic apiBaseUrl prop
+          await fetch(`${apiBaseUrl}/simulation/${simulationId}/disrupt`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(event),
@@ -60,12 +59,9 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ simulationId, isRunn
                     <div>
                         <Label htmlFor="weeks">Simulation Weeks</Label>
                         <Input
-                            id="weeks"
-                            type="number"
-                            value={numWeeks}
+                            id="weeks" type="number" value={numWeeks}
                             onChange={(e) => setNumWeeks(parseInt(e.target.value, 10) || 50)}
-                            className="mt-2 bg-gray-900 border-gray-700"
-                            disabled={isRunning}
+                            className="mt-2 bg-gray-900 border-gray-700" disabled={isRunning}
                         />
                     </div>
                     <h4 className="font-semibold text-gray-200 pt-2">Agent Intelligence</h4>

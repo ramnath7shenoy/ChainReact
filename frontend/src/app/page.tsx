@@ -17,11 +17,8 @@ const ChainChart = dynamic(
 
 export default function Home() {
   const { 
-    simulationId, 
-    dataHistory, 
-    startSimulation, 
-    eventHistory,
-    summaryData,
+    simulationId, dataHistory, startSimulation, eventHistory,
+    summaryData, apiBaseUrl // <-- Get the new URL
   } = useSimulation();
   
   const isRunning = !!simulationId && !summaryData;
@@ -44,11 +41,12 @@ export default function Home() {
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-1 space-y-8">
+          <div className="lg-col-span-1 space-y-8">
             <ControlPanel
               simulationId={simulationId}
               isRunning={isRunning}
               startSimulation={startSimulation}
+              apiBaseUrl={apiBaseUrl} // <-- Pass the new URL as a prop
             />
             <AnalystPanel eventHistory={eventHistory} />
           </div>

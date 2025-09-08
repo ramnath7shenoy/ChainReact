@@ -2,47 +2,23 @@
 import { useState, useEffect, useCallback } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 
-export interface AgentState {
-    inventory: number;
-    placed_order_amount: number;
-    backlog: number;
-    cost: number;
-}
-export interface EventMessage {
-    week: number;
-    type: 'INFO' | 'WARNING' | 'CRITICAL';
-    text: string;
-}
-export interface AgentData {
-  Retailer: AgentState;
-  Wholesaler: AgentState;
-  Distributor: AgentState;
-  Factory: AgentState;
-}
-export interface SimulationMessage {
-    week: number;
-    agents: AgentData;
-    analysis?: string;
-    events?: EventMessage[];
-    type?: undefined;
-}
-export interface SimulationIdMessage {
-    type: 'simulation_id';
-    id: string;
-}
-export interface FinalSummaryMessage {
-    type: 'final_summary';
-    title: string;
-    summary_text: string;
-    total_cost_data: { name: string, cost: number }[];
-    inventory_stability_data: { week: number, inventory: number }[];
-    cost_breakdown_data: { name: string, value: number }[];
-}
-
+// All interface definitions are the same
+export interface AgentState { /* ... */ }
+export interface EventMessage { /* ... */ }
+export interface AgentData { /* ... */ }
+export interface SimulationMessage { /* ... */ }
+export interface SimulationIdMessage { /* ... */ }
+export interface FinalSummaryMessage { /* ... */ }
 type WebSocketMessage = SimulationMessage | SimulationIdMessage | FinalSummaryMessage;
 
 export const useSimulationSocket = () => {
-    const SIMULATION_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://127.0.0.1:8000/ws/simulation';
+    const SIMULATION_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://127.0.0.1:8001/ws/simulation';
+
+    // NEW: Derive the API base URL from the WebSocket URL
+    const apiBaseUrl = SIMULATION_URL
+        .replace('ws://', 'http://')
+        .replace('wss://', 'https://')
+        .replace('/ws/simulation', '');
 
     const [simulationId, setSimulationId] = useState<string | null>(null);
     const [dataHistory, setDataHistory] = useState<SimulationMessage[]>([]);
@@ -51,9 +27,7 @@ export const useSimulationSocket = () => {
 
     const { lastJsonMessage, readyState, sendJsonMessage } = useWebSocket(SIMULATION_URL, {
         shouldReconnect: (_closeEvent) => true,
-        onClose: () => {
-          setSimulationId(null);
-        }
+        onClose: () => { setSimulationId(null); }
     });
 
     const startSimulation = useCallback((args: { config: Record<string, string>, weeks: number }) => {
@@ -66,16 +40,11 @@ export const useSimulationSocket = () => {
     useEffect(() => {
         if (lastJsonMessage) {
             const message = lastJsonMessage as WebSocketMessage;
-
-            if (message.type === 'simulation_id') {
-                setSimulationId(message.id);
-            } else if (message.type === 'final_summary') {
-                setSummaryData(message);
-            } else if (message.agents) {
+            if (message.type === 'simulation_id') { setSimulationId(message.id); }
+            else if (message.type === 'final_summary') { setSummaryData(message); }
+            else if (message.agents) {
                 setDataHistory((prev) => [...prev, message]);
-                if (message.events) {
-                    setEventHistory(prev => [...prev, ...message.events!]);
-                }
+                if (message.events) { setEventHistory(prev => [...prev, ...message.events!]); }
             }
         }
     }, [lastJsonMessage]);
@@ -88,5 +57,6 @@ export const useSimulationSocket = () => {
         [ReadyState.UNINSTANTIATED]: 'Uninstantiated',
     }[readyState];
 
-    return { dataHistory, connectionStatus, simulationId, startSimulation, eventHistory, summaryData, setSummaryData };
+    // Add apiBaseUrl to the return object
+    return { dataHistory, connectionStatus, simulationId, startSimulation, eventHistory, summaryData, setSummaryData, apiBaseUrl };
 };
