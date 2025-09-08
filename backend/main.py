@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# --- DATABASE CONNECTION ---
 MONGO_URI = os.environ.get("MONGO_CONNECTION_STRING")
 client = MongoClient(MONGO_URI)
 db = client.chainreact_db
@@ -19,16 +20,18 @@ simulations_collection = db.simulations
 
 app = FastAPI()
 
-# UPDATED: Define a specific list of allowed origins
+# --- CORS CONFIGURATION ---
+# This list explicitly allows your frontend (both local and deployed) to connect.
 origins = [
     "http://localhost",
     "http://localhost:3000",
-    "http://localhost:3001", # <-- ADDED YOUR NEW PORT
+    "http://localhost:3001",
+    "https://ash4sylfxs.us-east-1.awsapprunner.com", # Your public frontend URL
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins, # Use the specific list instead of a wildcard
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
