@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Dispatch } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 
 export interface AgentState {
@@ -8,20 +8,17 @@ export interface AgentState {
     backlog: number;
     cost: number;
 }
-
 export interface EventMessage {
     week: number;
     type: 'INFO' | 'WARNING' | 'CRITICAL';
     text: string;
 }
-
 export interface AgentData {
   Retailer: AgentState;
   Wholesaler: AgentState;
   Distributor: AgentState;
   Factory: AgentState;
 }
-
 export interface SimulationMessage {
     week: number;
     agents: AgentData;
@@ -29,12 +26,10 @@ export interface SimulationMessage {
     events?: EventMessage[];
     type?: undefined;
 }
-
 export interface SimulationIdMessage {
     type: 'simulation_id';
     id: string;
 }
-
 export interface FinalSummaryMessage {
     type: 'final_summary';
     title: string;
@@ -49,13 +44,19 @@ type WebSocketMessage = SimulationMessage | SimulationIdMessage | FinalSummaryMe
 export const useSimulationSocket = () => {
     const SIMULATION_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://127.0.0.1:8001/ws/simulation';
 
+    // NEW: Derive the API base URL from the WebSocket URL
+    const apiBaseUrl = SIMULATION_URL
+        .replace('ws://', 'http://')
+        .replace('wss://', 'https://')
+        .replace('/ws/simulation', '');
+
     const [simulationId, setSimulationId] = useState<string | null>(null);
     const [dataHistory, setDataHistory] = useState<SimulationMessage[]>([]);
     const [eventHistory, setEventHistory] = useState<EventMessage[]>([]);
     const [summaryData, setSummaryData] = useState<FinalSummaryMessage | null>(null);
 
     const { lastJsonMessage, readyState, sendJsonMessage } = useWebSocket(SIMULATION_URL, {
-        shouldReconnect: (_closeEvent) => true, // Fixed the unused variable warning
+        shouldReconnect: (_closeEvent) => true,
         onClose: () => {
           setSimulationId(null);
         }
@@ -93,5 +94,6 @@ export const useSimulationSocket = () => {
         [ReadyState.UNINSTANTIATED]: 'Uninstantiated',
     }[readyState];
 
-    return { dataHistory, connectionStatus, simulationId, startSimulation, eventHistory, summaryData, setSummaryData };
+    // UPDATED: Add apiBaseUrl to the return object
+    return { dataHistory, connectionStatus, simulationId, startSimulation, eventHistory, summaryData, setSummaryData, apiBaseUrl };
 };
