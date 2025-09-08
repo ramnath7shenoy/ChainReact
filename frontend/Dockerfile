@@ -1,5 +1,5 @@
-# Use the official Node.js 18 image.
-FROM node:18-alpine
+# Use the full official Node.js 18 image for maximum compatibility.
+FROM node:18
 
 # Set the working directory
 WORKDIR /app
