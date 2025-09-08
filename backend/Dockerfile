@@ -13,6 +13,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the backend application code into the container at /app
 COPY . .
 
-# Command to run the application when the container launches
-# We use --host 0.0.0.0 to make it accessible from outside the container
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# UPDATED: Added the --proxy-headers flag
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]
