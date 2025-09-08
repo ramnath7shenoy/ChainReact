@@ -1,25 +1,21 @@
-# Stage 1: The "Builder" Stage
-FROM node:18-alpine AS builder
+# Use the official Node.js 18 image.
+FROM node:18-alpine
+
+# Set the working directory
 WORKDIR /app
 
-# NEW: Accept a build-time argument for the WebSocket URL
-ARG NEXT_PUBLIC_WEBSOCKET_URL
-# And set it as an environment variable for the build process
-ENV NEXT_PUBLIC_WEBSOCKET_URL=$NEXT_PUBLIC_WEBSOCKET_URL
-
+# Copy package files and install dependencies
 COPY package*.json ./
 RUN npm install
+
+# Copy the rest of the application code
 COPY . .
+
+# Build the app for production
 RUN npm run build
 
-# ---
-
-# Stage 2: The "Runner" Stage
-FROM node:18-alpine
-WORKDIR /app
-
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-
+# Expose the port the app runs on
 EXPOSE 3000
-CMD ["node", "server.js"]
+
+# The command to start the Next.js production server
+CMD ["npm", "start"]
