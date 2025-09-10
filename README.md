@@ -1,7 +1,5 @@
 # ChainReact – An Agentic AI & Digital Twin Platform
 
-![ChainReact Dashboard](https://i.imgur.com/your-screenshot-url.png)
-_Note: You should take a final screenshot of your running dashboard and replace the URL above._
 
 A full-stack, real-time simulation platform designed to model, visualize, and analyze the **bullwhip effect** in a multi-echelon supply chain. This project serves as an interactive digital twin where users can configure agents with rule-based heuristics or a trained AI model, inject real-time disruptions, and observe the systemic impact via a live dashboard and an LLM-powered analyst.
 
